@@ -82,7 +82,10 @@ if [ "$1" = 'postgres' ]; then
 		echo
 
 		echo
-    kill -s TERM "$pid"
+		kill -s TERM "$pid"
+		while kill -0 "$pid"; do
+                	sleep 0.5
+                done
 		for f in /docker-entrypoint-initdb.d/*; do
 			case "$f" in
 				*.sh)  echo "$0: running $f"; . "$f" ;;

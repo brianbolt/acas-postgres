@@ -1,4 +1,3 @@
-for f in /mnt/environments/*/*.env; do source $f; done
 db_exists(){
 	DB_NAME=$1
 	DBEXISTS=`gosu postgres postgres --single -jE <<- EOSQL

@@ -15,7 +15,7 @@ RUN yum install -y ca-certificates wget && rm -rf /var/lib/apt/lists/* \
 	&& yum remove -y wget
 
 RUN yum install -y http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-1.noarch.rpm
-RUN yum install postgresql94-server postgresql94 postgresql94-contrib -y
+RUN yum install postgresql94-server postgresql94 postgresql94-contrib postgresql94-plperl -y
 
 ENV LANG en_US.utf8
 

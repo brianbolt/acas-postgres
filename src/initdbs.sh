@@ -65,6 +65,12 @@ create_schema(){
 	   CREATE SCHEMA $SCHEMA AUTHORIZATION $AUTHORIZATION
 	EOSQL
 }
+run(){
+	run=$1
+	gosu postgres postgres --single -jE $DB_NAME <<- EOSQL
+		$run
+	EOSQL
+}
 
 echo "******CHECKING IF $DB_NAME DATABASE EXISTS******"
 DBEXISTS=$(db_exists $DB_NAME)
@@ -173,6 +179,7 @@ if [[ $CMPDREG == "true" ]]; then
 	alter "ROLE $CMPDREG_ADMIN_USERNAME SET search_path = $CMPDREG_SCHEMA"
 	grant "CREATE ON database $DB_NAME to $CMPDREG_ADMIN_USERNAME"
 	grant "USAGE ON SCHEMA $CMPDREG_SCHEMA to $CMPDREG_USER_USERNAME"
+	run "CREATE EXTENSION plperl"
 else
 	echo false
 fi

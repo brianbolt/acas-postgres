@@ -128,6 +128,9 @@ if [[ $ACAS == "true" ]]; then
 		create_schema $ACAS_SCHEMA $ACAS_USERNAME
 		echo
 	fi
+	echo "******CREATING EXTENSIONS rdkit and btree_gist******"
+	run "CREATE EXTENSION rdkit"
+	run "CREATE EXTENSION btree_gist"
 
 fi
 

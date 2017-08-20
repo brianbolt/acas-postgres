@@ -179,6 +179,11 @@ if [[ $CMPDREG == "true" ]]; then
 	grant "CREATE ON database $DB_NAME to $CMPDREG_ADMIN_USERNAME"
 	grant "USAGE ON SCHEMA $CMPDREG_SCHEMA to $CMPDREG_USER_USERNAME"
 	run "CREATE EXTENSION plperl"
+	run "$(cat /indigo-build/bingo_install.sql)"
+	grant "USAGE ON SCHEMA bingo TO $CMPDREG_ADMIN_USERNAME"
+	grant "SELECT ON ALL TABLES IN SCHEMA bingo TO $CMPDREG_ADMIN_USERNAME"
+	grant "EXECUTE ON ALL FUNCTIONS IN SCHEMA bingo TO $CMPDREG_ADMIN_USERNAME"
+	grant "USAGE ON SCHEMA bingo TO $CMPDREG_ADMIN_USERNAME"
 else
 	echo false
 fi

@@ -15,7 +15,7 @@ RUN yum install -y ca-certificates wget && rm -rf /var/lib/apt/lists/* \
 	&& yum remove -y wget
 
 RUN yum install -y http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-3.noarch.rpm
-RUN yum install postgresql94-server postgresql94 postgresql94-contrib postgresql94-plperl -y
+RUN yum install postgresql94-server postgresql94 postgresql94-contrib postgresql94-plperl postgresql94-devel -y
 
 ENV LANG en_US.utf8
 
@@ -29,6 +29,27 @@ RUN mkdir -p /var/run/postgresql && chown -R postgres /var/run/postgresql
 ENV PATH /usr/pgsql-$PG_MAJOR/bin:$PATH
 ENV PGDATA /var/lib/postgresql/data
 VOLUME /var/lib/postgresql/data
+
+RUN yum install -y cmake
+#Get more recent gcc and g++ required to compile bingo
+WORKDIR /etc/yum.repos.d
+RUN curl -sLO http://people.centos.org/tru/devtools-1.1/devtools-1.1.repo 
+RUN yum -y --enablerepo=testing-1.1-devtools-6 install devtoolset-1.1-gcc devtoolset-1.1-gcc-c++
+RUN ln -s /opt/centos/devtoolset-1.1/root/usr/bin/cc /usr/bin/cc && ln -s /opt/centos/devtoolset-1.1/root/usr/bin/c++ /usr/bin/c++
+
+ENV INDIGO_VERSION 1.2.3
+
+WORKDIR /
+RUN curl -sL https://github.com/epam/Indigo/archive/indigo-$INDIGO_VERSION.tar.gz | tar -xz
+WORKDIR Indigo-indigo-$INDIGO_VERSION/
+ENV BINGO_PG_DIR /usr/pgsql-$PG_MAJOR
+ENV BINGO_PG_VERSION $PG_MAJOR
+RUN touch /Indigo-indigo-1.2.3/bingo/postgres/INSTALL && touch /Indigo-indigo-1.2.3/bingo/postgres/README
+RUN python build_scripts/bingo-release.py --preset=linux64 --dbms=postgres
+RUN mv build/*/bingo-postgres9*/* /indigo-build
+WORKDIR /indigo-build
+RUN cp lib/bingo_postgres.so /usr/pgsql-9.4/lib/
+RUN ./bingo-pg-install.sh -libdir /usr/pgsql-9.4/lib/ -y
 
 COPY docker-entrypoint.sh /
 COPY src/* /docker-entrypoint-initdb.d/

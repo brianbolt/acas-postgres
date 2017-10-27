@@ -36,4 +36,5 @@ COPY src/* /docker-entrypoint-initdb.d/
 ENTRYPOINT ["/bin/sh", "/docker-entrypoint.sh"]
 
 EXPOSE 5432
-CMD ["postgres"]
+
+CMD ["postgres", "-c", "log_connections=on", "-c", "log_disconnections=on"]

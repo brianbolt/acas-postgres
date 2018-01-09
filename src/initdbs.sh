@@ -128,6 +128,9 @@ if [[ $ACAS == "true" ]]; then
 		create_schema $ACAS_SCHEMA $ACAS_USERNAME
 		echo
 	fi
+	echo "******CREATING EXTENSIONS rdkit and btree_gist******"
+	run "CREATE EXTENSION rdkit"
+	run "CREATE EXTENSION btree_gist"
 
 fi
 
@@ -179,6 +182,12 @@ if [[ $CMPDREG == "true" ]]; then
 	grant "CREATE ON database $DB_NAME to $CMPDREG_ADMIN_USERNAME"
 	grant "USAGE ON SCHEMA $CMPDREG_SCHEMA to $CMPDREG_USER_USERNAME"
 	run "CREATE EXTENSION plperl"
+	run "$(cat /indigo-build/bingo_install.sql)"
+	grant "USAGE ON SCHEMA bingo TO $CMPDREG_ADMIN_USERNAME"
+	grant "SELECT ON ALL TABLES IN SCHEMA bingo TO $CMPDREG_ADMIN_USERNAME"
+	grant "EXECUTE ON ALL FUNCTIONS IN SCHEMA bingo TO $CMPDREG_ADMIN_USERNAME"
+	grant "USAGE ON SCHEMA bingo TO $CMPDREG_ADMIN_USERNAME"
+	alter "ROLE $CMPDREG_ADMIN_USERNAME SET search_path = public, $CMPDREG_SCHEMA , bingo"
 else
 	echo false
 fi

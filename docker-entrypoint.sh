@@ -17,7 +17,16 @@ if [ "$1" = 'postgres' ]; then
 
 	# look specifically for PG_VERSION, as it is expected in the DB dir
 	if [ ! -s "$PGDATA/PG_VERSION" ]; then
+		data=false;
+		if [ "$(ls -A $PGDATA)" ]; then
+		  mkdir -p /tmp/data;
+		  mv $PGDATA/* /tmp/data;
+		  data=true;
+		fi;
 		gosu postgres initdb
+		if [ "$data" = true ]; then
+			mv /tmp/data/* $PGDATA;
+		fi;
 
 		# check password first so we can output the warning before postgres
 		# messes it up

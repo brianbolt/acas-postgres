@@ -1,0 +1,48 @@
+name: ACAS Postgres Indigo
+
+env:
+  OS_NAME_MAPPING_JSON: '{"ubuntu": "linux", "windows": "windows", "macos": "macos"}'
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  pull_request:
+  repository_dispatch:
+
+jobs:
+  build_bingo_postgres_linux_x86_64:
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres_major_version: [ 9.6, 10, 11, 12 ]
+    runs-on: ubuntu-latest
+    container: epmlsop/buildpack-centos7:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: false
+          fetch-depth: 500
+      - name: Git fetch tags
+        run: git fetch --tags -f
+      - name: Install postgres server headers
+        run: |
+          case ${{ matrix.postgres_major_version }} in 12) pg_version=12;; 11) pg_version=11;; 10) pg_version=10;; 9.6) pg_version=96;; esac;
+          yum install -y -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm yum-utils
+          curl -OL https://download.postgresql.org/pub/repos/yum/RPM-GPG-KEY-PGDG
+          rpm --import RPM-GPG-KEY-PGDG
+          yumdownloader -y postgresql${pg_version}-devel
+          rpm -i --nodeps postgresql${pg_version}*.rpm
+      - name: Build bingo-postgres
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DBUILD_BINGO_POSTGRES=ON -DBUILD_BINGO_SQLSERVER=OFF -DBUILD_BINGO_ORACLE=OFF -DBUILD_INDIGO=OFF -DBUILD_INDIGO_WRAPPERS=OFF -DBUILD_INDIGO_UTILS=OFF -DBUILD_BINGO_ELASTIC=OFF
+          cmake --build . --config Release --target package-bingo-postgres -- -j $(nproc)
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: bingo-postgres-${{ matrix.postgres_major_version }}-linux-x86_64
+          path: dist/bingo-postgres*.tgz
